@@ -10,8 +10,8 @@ declare module 'knex/types/tables' {
       user_id: string
       name: string
       description: string
-      date: string
       diet: boolean
+      date: string
     }
   }
 }
