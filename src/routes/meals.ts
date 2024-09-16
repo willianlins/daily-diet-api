@@ -132,9 +132,34 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     const data = await knex('meals').where(userID)
 
+    let inSequence = false
+    let amountSequence = 0
+
     const metrics = data.reduce(
       (result, valor) => {
-        return { meals: 0, mealsOnDiet: 0, mealsOfDiet: 0, sequence: 0 }
+        if (valor.diet) {
+          if (inSequence) {
+            amountSequence += 1
+          } else {
+            amountSequence = 1
+          }
+
+          inSequence = true
+        } else {
+          inSequence = false
+        }
+
+        return {
+          meals: (result.meals += 1),
+          mealsOnDiet: valor.diet
+            ? (result.mealsOnDiet += 1)
+            : result.mealsOnDiet,
+          mealsOfDiet: !valor.diet
+            ? (result.mealsOfDiet += 1)
+            : result.mealsOfDiet,
+          sequence:
+            result.sequence < amountSequence ? amountSequence : result.sequence,
+        }
       },
       {
         meals: 0,
@@ -144,6 +169,6 @@ export async function mealsRoutes(app: FastifyInstance) {
       },
     )
 
-    return { data }
+    return { metrics }
   })
 }
